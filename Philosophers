@@ -10,21 +10,20 @@
 #include <stdio.h>
 #include <zconf.h>
 
-#define EATING 0
-#define HUNGRY 1
+//Grobal variables
+int philosopheNumber ;
 #define THINKING 2
-#define Number 5
+#define HUNGRY 1
+#define EATING 0
+#define LEFT (phnum + 4) % philosopheNumber
+#define RIGHT (phnum + 1) % philosopheNumber
 
-//Tracking the one who is on left side
-#define LEFT (phnum + 4) % Number
-// tracking the one who is one the right side
-#define RIGHT (phnum + 1) % Number
-
-int state[Number];
-int phil[Number] = { 0, 1, 2, 3, 4 };
+int state[];
+// Position of the pholosophers
+int phil[6] = { 0, 1, 2, 3,4,5};
 
 sem_t mutex;
-sem_t S[Number];
+sem_t S[];
 
 void test(int phnum)
 {
@@ -111,16 +110,20 @@ int main()
 {
 
     int i;
-    pthread_t thread_id[Number];
+    pthread_t thread_id[philosopheNumber];
+
 
     // initialize the semaphores
     sem_init(&mutex, 0, 1);
 
-    for (i = 0; i < Number; i++)
+     printf("Enter a number of philosophers\n:");
+     scanf("%d",&philosopheNumber);
+
+    for (i = 0; i < philosopheNumber; i++)
 
         sem_init(&S[i], 0, 0);
 
-    for (i = 0; i < Number; i++) {
+    for (i = 0; i < philosopheNumber; i++) {
 
         // create philosopher processes
         pthread_create(&thread_id[i], NULL,
@@ -129,10 +132,9 @@ int main()
         printf("Philosopher %d is thinking\n", i + 1);
     }
 
-    for (i = 0; i < Number; i++)
+    for (i = 0; i < philosopheNumber; i++)
 
         pthread_join(thread_id[i], NULL);
 }
-
 
 

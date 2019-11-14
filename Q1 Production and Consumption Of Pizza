@@ -1,16 +1,15 @@
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <unistd.h>  //Header file for sleep(). man 3 sleep for details. 
 
-         //Members
+                                    //Members
  //-------------------------------------------------------------------------        
 //1 Theoneste Nsanzabarinda
 //2 Victorien Bidiasis
 //3 Mugenga Yves
 
-#Assignment of eating and providing  Pizzas
+                                     //Assignment of eating and providing  Pizzas
 
-
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <unistd.h>  //Header file for sleep(). man 3 sleep 
 #include <pthread.h> 
   
 

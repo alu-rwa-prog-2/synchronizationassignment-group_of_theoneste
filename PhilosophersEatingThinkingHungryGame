@@ -1,0 +1,149 @@
+// System programming  assignment
+
+//Theoneste Nsanzabarinda
+// Mugenga Yves
+//Victorie Budiasis
+
+
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdio.h>
+#include <zconf.h>
+#include <stdlib.h>
+
+
+#define thinkingState 2
+#define hungryState 1
+#define eatingState 0
+#define leftNeighbour (philosopherNumber + 4) % numberOfPhilosopher
+#define rightNeighbour (philosopherNumber + 1) % numberOfPhilosopher
+
+int numberOfPhilosopher;
+int *stateRoom; // creating the room for the state
+int *philosophersRoom; // Creating the room for Philosophers
+
+sem_t mutex; // thread which prevent the sychronization
+sem_t *S;  // a big room for all 
+
+
+// function which test the state of philosophers by using their number
+void test(int philosopherNumber)
+{
+    if (stateRoom[philosopherNumber] == hungryState
+        && stateRoom[leftNeighbour] != eatingState
+        && stateRoom[rightNeighbour] != eatingState)
+         {
+        // state that eating
+        stateRoom[philosopherNumber] = eatingState;
+        sleep(2);
+
+        printf("Philosopher %d takes chopsticks %d and %d\n",
+               philosopherNumber + 1, leftNeighbour + 1, philosopherNumber + 1);
+
+        printf("Philosopher %d is Eating\n", philosopherNumber + 1);
+
+        // sem_post(&S[phnum]) has no effect
+        // during takefork
+        // used to wake up hungry philosophers
+        // during putfork
+        sem_post(&S[philosopherNumber]);
+    }
+}
+
+// function for taking up chopsticks
+void take_chopsticks(int philosopherNumber)
+{
+
+    sem_wait(&mutex); // thread for waiting, are thinking
+
+    // state that a  hungry
+    stateRoom[philosopherNumber] = hungryState;
+
+    printf("Philosopher %d is Hungry\n", philosopherNumber + 1);
+
+    // eat if neighbours are not eating
+    test(philosopherNumber); // calling eating function
+
+    sem_post(&mutex);
+
+    // if unable to eat wait to be signalled
+    sem_wait(&S[philosopherNumber]);
+
+    sleep(1);
+}
+
+// put down chopsticks
+void put_chopsticks(int philosopherNumber)
+{
+
+    sem_wait(&mutex);
+
+    // state that thinking
+    stateRoom[philosopherNumber] = thinkingState;
+
+    printf("Philosopher %d putting chopsticks %d and %d down\n",
+           philosopherNumber + 1, leftNeighbour + 1, philosopherNumber + 1);
+    printf("Philosopher %d is thinking\n", philosopherNumber + 1);
+
+    test(leftNeighbour);
+    test(rightNeighbour);
+
+    sem_post(&mutex);
+}
+
+void* philospher(void* number)
+{
+
+    while (1) {
+
+        int* i = number;
+
+        sleep(1);
+
+        take_chopsticks(*i);
+
+        sleep(0);
+
+        put_chopsticks(*i);
+    }
+}
+
+int main()
+{
+
+  printf("Enter the number of philosophers: ");
+  scanf("%d",&numberOfPhilosopher);
+
+  stateRoom = malloc(sizeof *stateRoom *numberOfPhilosopher);
+  philosophersRoom = malloc(sizeof *philosophersRoom *numberOfPhilosopher);
+
+  S = malloc(sizeof *S *numberOfPhilosopher);
+
+    int i;
+    pthread_t thread_id[numberOfPhilosopher];
+
+    // initialize the semaphores
+    sem_init(&mutex, 0, 1);
+
+    for (i = 0; i < numberOfPhilosopher; i++){
+
+        sem_init(&S[i], 0, 0);
+
+        philosophersRoom[i]=i;
+        }
+
+    for (i = 0; i < numberOfPhilosopher; i++) {
+
+        // create philosopher processes
+        pthread_create(&thread_id[i], NULL,
+                       philospher, &philosophersRoom[i]);
+
+        printf("Philosopher %d is thinking\n", i + 1);
+    }
+
+    for (i = 0; i < numberOfPhilosopher; i++)
+
+        pthread_join(thread_id[i], NULL);
+}
+
+
